@@ -3,7 +3,7 @@ from flask import Flask
 app = Flask(__name__)
 
 app.config.update(
-    CELERY_BROKER_URL='amqp://guest@scrape_rmq//',
+    CELERY_BROKER_URL='amqp://guest@scraper_rmq//',
     CELERY_RESULT_BACKEND='amqp',
     CELERY_IGNORE_RESULT=False,
 )

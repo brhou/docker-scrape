@@ -122,12 +122,16 @@ def ret_results(task_id):
         else:
             comb_res.ready = False
         # if there is one group that is not ready, set the result to not ready
-        if not res.ready():
-            comb_res.ready = False
+        #if not res.ready():
+        #    comb_res.ready = False
         if comb_res.ready:
             # group is an asyncresult
             for group in res:
                 group = AsyncResult(group.id, app=app_celery)
+                # added as a hack since the data can't be checked as a group Result
+                if not group.ready():
+                    comb_res.ready = False
+                    continue
                 # skip over errored results, ignore them for now
                 if group.failed():
                     continue

@@ -29,6 +29,9 @@ EXPOSE 5672
 # Enable rabbitmq admin
 RUN rabbitmq-plugins enable rabbitmq_management
 
+# hack to enable running worker as ROOT
+ENV C_FORCE_ROOT true
+
 # make the directory where the code goes
 RUN mkdir -p /root/git
 
@@ -41,4 +44,4 @@ WORKDIR docker-scrape
 RUN pip install -r requirements.txt
 
 # this has to be run since
-RUN rabbitmq-server -detached
+#RUN rabbitmq-server -detached
