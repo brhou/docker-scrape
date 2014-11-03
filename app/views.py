@@ -42,11 +42,14 @@ def start_crawler():
 
 @app.route('/status/<id>', methods=['GET'])
 def check_status(id):
+    ret_code = 500
     try:
         results = tasks.ret_results(id)
         status = task_status(results)
     except (tasks.TaskNotStartedException, tasks.TaskNotFoundException) as e:
-        return str(e)
+        return str(e), ret_code
+    except Exception as e:
+        return "There was an internal error: %s" % str(e), ret_code
     ret = {
         'id': id,
         'completed': status.completed,
@@ -56,11 +59,14 @@ def check_status(id):
 
 @app.route('/result/<id>', methods=['GET'])
 def get_result(id):
+    ret_code = 500
     try:
         results = tasks.ret_results(id)
         status = task_status(results)
     except (tasks.TaskNotStartedException, tasks.TaskNotFoundException) as e:
-        return str(e)
+        return str(e), ret_code
+    except Exception as e:
+        return "There was an internal error: %s" % str(e), ret_code
     if not status.ready:
         return "Please check the status, the results aren't ready yet", 503
     res_dict = {}

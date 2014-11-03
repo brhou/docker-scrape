@@ -56,8 +56,16 @@ def scrape_url(result, recurse=False):
                 new_url_list.append(Result(url))
     new_url_list = set(new_url_list)
     if recurse:
-        result.next_results = get_urls_group(new_url_list).delay()
+        result.next_results = url_list_wrapper.delay(new_url_list)
     return result
+
+@app_celery.task()
+def url_list_wrapper(urls):
+    """
+    Have to wrap group but with url lists combined already
+    """
+    return get_urls_group(urls).delay()
+
 
 @app_celery.task()
 def group_wrapper(urls):
@@ -86,6 +94,7 @@ def ret_results(task_id):
         raise TaskNotStartedException("Task id %s has not started. Please try again later." % task_id)
     # res is a groupresult
     for group in res:
+        group = AsyncResult(group.id, app=app_celery)
         if not group.ready():
             res_list.append(Result("", [], ready=False))
             continue
@@ -101,16 +110,24 @@ def ret_results(task_id):
     res_tup = None
     if group_list:
         res_tup = group_list.pop()
-    # res_tup is a (string key, groupresult)
+    # res_tup is a (string key, asyncresult)
     while res_tup:
         comb_res = res_tup[0]
+        # res is asyncresult
         res = res_tup[1]
+        res = AsyncResult(res.id, app=app_celery)
+        # remove async wrapper
+        if res.ready():
+            res = res.get()
+        else:
+            comb_res.ready = False
         # if there is one group that is not ready, set the result to not ready
         if not res.ready():
             comb_res.ready = False
         if comb_res.ready:
             # group is an asyncresult
             for group in res:
+                group = AsyncResult(group.id, app=app_celery)
                 # skip over errored results, ignore them for now
                 if group.failed():
                     continue
