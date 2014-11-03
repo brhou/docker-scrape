@@ -41,6 +41,9 @@ RUN git clone https://github.com/brhou/docker-scrape.git
 
 WORKDIR docker-scrape
 
+# dependency for pip package cryptography
+RUN apt-get install -y libffi-dev libssl-dev
+
 RUN pip install -r requirements.txt
 
 # this has to be run since
