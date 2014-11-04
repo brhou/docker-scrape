@@ -1,6 +1,6 @@
 from app import app
-import json
 from flask import request, jsonify
+import json
 
 import tasks
 
@@ -27,7 +27,6 @@ def task_status(results):
 
 @app.route('/', methods=['POST'])
 def start_crawler():
-    print request.data
     data = request.get_json(force=True)
     ret_code = 400
     if not data:
@@ -36,7 +35,7 @@ def start_crawler():
         return "Please include 'urls' as json key", ret_code
     if not isinstance(data['urls'], list):
         return "Please include non empty type list for 'url' input", ret_code
-    t = tasks.group_wrapper.delay((data['urls']))
+    t = tasks.async_group_wrapper.delay((data['urls']))
     ret_code = 200
     return t.id, ret_code
 
